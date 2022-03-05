@@ -1,0 +1,4 @@
+# Image scraper
+/data/*
+/model/*
+/.idea/*
