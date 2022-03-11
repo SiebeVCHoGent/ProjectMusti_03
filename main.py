@@ -8,8 +8,11 @@ assert sys.version_info >= (3, 5)
 import sklearn
 assert sklearn.__version__ >= "0.20"
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import cross_val_score
+
+#Classifiers
+from sklearn.ensemble import RandomForestClassifier
+
 
 # Common imports
 import numpy as np
@@ -21,7 +24,7 @@ import pickle
 
 # to make this notebook's output stable across runs
 np.random.seed(42)
-
+RELOAD_DATA = False # Change when you want to reload the dataframe
 
 def target_value(val):
     if val == 'aanwezig':
@@ -34,58 +37,66 @@ def target_value(val):
 if not os.path.isdir('./model/'):
     os.mkdir('./model/')
 
-#Extract when not already extracted
-if not os.path.isdir('./data/classificatie'):
-    if not os.path.isfile('./data/classificatie.tar'):
-        raise Exception('Classificatie.tar not fount')
+if not os.path.isfile('./model/dataframe.sav'):
+    RELOAD_DATA = True # When there is not yet a dataframe, create one
 
-    print('Extracting tar...')
-    tar = tarfile.open('./data/classificatie.tar')
-    tar.extractall('./data/')
-    tar.close()
-    print('Extracting tar Done!')
+if RELOAD_DATA: # Check whether there needs to be created a new dataframe
+    #Extract when not already extracted
+    if not os.path.isdir('./data/classificatie'):
+        if not os.path.isfile('./data/classificatie.tar'):
+            raise Exception('Classificatie.tar not fount')
 
-if not os.path.isdir('./data/classificatie'):
-    raise Exception('Extracted files not found')
+        print('Extracting tar...')
+        tar = tarfile.open('./data/classificatie.tar')
+        tar.extractall('./data/')
+        tar.close()
+        print('Extracting tar Done!')
 
-samples = []
+    if not os.path.isdir('./data/classificatie'):
+        raise Exception('Extracted files not found')
 
-# Get grayscale values from pictures
-print('Creating dataframe')
-for folder in os.listdir('./data/classificatie/'):
-    for file in os.listdir(f'./data/classificatie/{folder}'):
+    samples = []
 
-        img = cv2.imread(f'./data/classificatie/{folder}/{file}', 0)
-        img = cv2.resize(img, (320, 176))
+    # Get grayscale values from pictures
+    print('Creating dataframe')
+    for folder in os.listdir('./data/classificatie/'):
+        for file in os.listdir(f'./data/classificatie/{folder}'):
 
-        # add them to a dataframe
-        imgd = dict()
-        imgd['target'] = target_value(folder)
-        c = 0
-        for i in img.flatten():
-            c += 1
-            imgd[f'p{c}'] = i
-        samples.append(imgd)
-        print(file)
+            img = cv2.imread(f'./data/classificatie/{folder}/{file}', 0)
+            img = cv2.resize(img, (320, 176))
 
-musti = pd.DataFrame.from_records(samples)
+            # add them to a dataframe
+            imgd = dict()
+            imgd['target'] = target_value(folder)
+            c = 0
+            for i in img.flatten():
+                c += 1
+                imgd[f'p{c}'] = i
+            samples.append(imgd)
+            print(file)
 
-print('Dataframe Created')
+    print('Saving DataFrame')
+    musti = pd.DataFrame.from_records(samples)
+    pickle.dump(musti, open('./model/dataframe.sav', 'wb'))
+else:
+    print('Loading DataFrame')
+    musti = pickle.load(open('./model/dataframe.sav', 'rb'))
+
+print('DataFrame Loaded')
 
 X, y = musti.drop('target', axis=1), musti['target']
 y = y.astype(np.uint8)  # less RAM space
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(X_train.shape)
-print('Start training...')
-sgd_clf = SGDClassifier(max_iter=1000, tol=1e-3, random_state=42)
-sgd_clf.fit(X_train, y_train)
-print('End training!')
+print(f'Training set Shape: {X_train.shape}')
 
-model = sgd_clf # Generated machine learning model (fit result)
-pickle.dump(model, open('./model/model.sav', 'wb'))
+model = RandomForestClassifier(n_estimators=400, random_state=42)
+model = model.fit(X_train, y_train)
 
-print(cross_val_score(model, X_test, y_test, cv=3))
+a = cross_val_score(model, X_test, y_test, cv=3)
+print(f'\t{a}')
+print(f'\tmean: {np.mean(a)}')
+
 
 
 
