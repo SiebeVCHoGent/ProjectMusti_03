@@ -56,12 +56,12 @@ if RELOAD_DATA: # Check whether there needs to be created a new dataframe
         raise Exception('Extracted files not found')
 
     samples = []
+    sample_counter = 0
+    musti = pd.DataFrame()
 
-    # Get grayscale values from pictures
-    print('Creating dataframe')
     for folder in os.listdir('./data/classificatie/'):
         for file in os.listdir(f'./data/classificatie/{folder}'):
-
+            
             img = cv2.imread(f'./data/classificatie/{folder}/{file}', 0)
             img = cv2.resize(img, (320, 176))
 
@@ -73,16 +73,25 @@ if RELOAD_DATA: # Check whether there needs to be created a new dataframe
                 c += 1
                 imgd[f'p{c}'] = i
             samples.append(imgd)
+            sample_counter+=1
             print(file)
 
+            if sample_counter % 200==0:
+                temp_df = pd.DataFrame.from_dict(samples)
+                musti = musti.append(temp_df, ignore_index=True)
+                samples = []
+    temp_df = pd.DataFrame.from_dict(samples)
+    musti = musti.append(temp_df, ignore_index=True)
+    samples = []
+
     print('Saving DataFrame')
-    musti = pd.DataFrame.from_records(samples)
     pickle.dump(musti, open('./model/dataframe.sav', 'wb'))
 else:
     print('Loading DataFrame')
     musti = pickle.load(open('./model/dataframe.sav', 'rb'))
 
 print('DataFrame Loaded')
+print(musti)
 
 X, y = musti.drop('target', axis=1), musti['target']
 y = y.astype(np.uint8)  # less RAM space
