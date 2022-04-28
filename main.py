@@ -8,8 +8,7 @@ assert sys.version_info >= (3, 5)
 # Scikit-Learn ≥0.20 is required
 import sklearn
 assert sklearn.__version__ >= "0.20"
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
 from sklearn.preprocessing import StandardScaler
 
 #Classifiers
@@ -107,14 +106,24 @@ X_test = scaler.transform(X_test)
 print(X_train)
 
 
-model = RandomForestClassifier(n_estimators=200, random_state=42, verbose=1)
+model = RandomForestClassifier()
 print('fitting model')
-model = model.fit(X_train, y_train)
+#model = model.fit(X_train, y_train)
 
-a = cross_val_score(model, X_test, y_test, cv=3)
+param_grid = [
+    {'n_estimators': [10, 100, 200], 'max_features': [2, 4, 8], 'random_state': [42]},
+    ]
+
+gridsearch = GridSearchCV(model, param_grid, cv=3, verbose=2)
+print(gridsearch)
+gridsearch.fit(X_train, y_train)
+
+print(gridsearch.best_params_,gridsearch.best_score_)
+
+'''a = cross_val_score(model, X_test, y_test, cv=3)
 print(f'\t{a}')
 print(f'\tmean: {np.mean(a)}')
-
+'''
 
 
 
