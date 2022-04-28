@@ -1,6 +1,7 @@
 # Imports
 # Python ≥3.5 is required
 import sys
+from langcodes import standardize_tag
 
 assert sys.version_info >= (3, 5)
 
@@ -9,6 +10,7 @@ import sklearn
 assert sklearn.__version__ >= "0.20"
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import StandardScaler
 
 #Classifiers
 from sklearn.ensemble import RandomForestClassifier
@@ -99,7 +101,14 @@ y = y.astype(np.uint8)  # less RAM space
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 print(f'Training set Shape: {X_train.shape}')
 
-model = RandomForestClassifier(n_estimators=400, random_state=42)
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+print(X_train)
+
+
+model = RandomForestClassifier(n_estimators=200, random_state=42, verbose=1)
+print('fitting model')
 model = model.fit(X_train, y_train)
 
 a = cross_val_score(model, X_test, y_test, cv=3)
