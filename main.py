@@ -1,8 +1,6 @@
 # Imports
 # Python ≥3.5 is required
 import sys
-from langcodes import standardize_tag
-
 assert sys.version_info >= (3, 5)
 
 # Scikit-Learn ≥0.20 is required
