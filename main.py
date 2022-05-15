@@ -62,7 +62,7 @@ if RELOAD_DATA: # Check whether there needs to be created a new dataframe
         for file in os.listdir(f'./data/classificatie/{folder}'):
             
             img = cv2.imread(f'./data/classificatie/{folder}/{file}', 0)
-            img = cv2.resize(img, (320, 176))
+            img = cv2.normalize(img,np.zeros(img.shape), 0, 1000, cv2.NORM_MINMAX)
 
             # add them to a dataframe
             imgd = dict()
