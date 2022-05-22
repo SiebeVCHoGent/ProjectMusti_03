@@ -83,11 +83,11 @@ if RELOAD_DATA: # Check whether there needs to be created a new dataframe
     musti = musti.append(temp_df, ignore_index=True)
     samples = []
 
-    smallest_dataset_len = min(len(musti[musti.target == 2]), len(musti[musti.target == 1]), len(musti[musti.target == 0]))
-    for i in range(3):
-        frac = 1 - smallest_dataset_len / len(musti[musti.target == i])
-        print(frac, i)
-        musti = musti.drop(musti.query(f'target == {i}').sample(frac=frac).index)
+    # smallest_dataset_len = min(len(musti[musti.target == 2]), len(musti[musti.target == 1]), len(musti[musti.target == 0]))
+    # for i in range(3):
+    #     frac = 1 - smallest_dataset_len / len(musti[musti.target == i])
+    #     print(frac, i)
+    #     musti = musti.drop(musti.query(f'target == {i}').sample(frac=frac).index)
 
     print('Saving DataFrame')
     pickle.dump(musti, open('./model/dataframe.sav', 'wb'))
